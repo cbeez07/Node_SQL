@@ -16,7 +16,6 @@ const connection = mysql.createConnection({
 let managerMenu = () => {
     console.log('Manager Menu \n1: View Products for Sale \n2: View Low Inventory \n3: Add to Inventory \n4: Add New Product');
     prompt.get(['userPick'], (err1, resA) => {
-        console.log(resA.userPick);
         
         if (resA.userPick == 1) {
             viewProducts();
@@ -50,13 +49,23 @@ let viewLowProducts = () => {
     console.log("View Low Inventory");
     connection.query("SELECT * FROM products", function(err, resC) {
         if (err) throw err;
+        var lowstock = true;
+
         resC.forEach(function(item, index){
             if (item.stock_quantity < 5) {
                 console.log(`Item ID - ${item.item_id} : Product Name - ${item.product_name} : Department Name - ${item.department_name} : Price - $${item.price} : Stock Quantity - ${item.stock_quantity}`);  
-            } 
+            } else {
+                lowstock = false;
+            }
+                
+            
                 
             
         });
+        if (!lowstock) {
+            console.log('You do not have any low inventory');
+            
+        }
     })
     connection.end();
 }
