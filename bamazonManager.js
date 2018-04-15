@@ -14,7 +14,7 @@ const connection = mysql.createConnection({
 });
 
 let managerMenu = () => {
-    console.log('Manager Menu \n1: View Products for Sale \n2: View Low Inventory \n3: Add to Inventory \n4: Add New Product');
+    console.log('Manager Menu \n1: View Products for Sale \n2: View Low Inventory \n3: Add to Inventory \n4: Add New Product \n5: Exit');
     prompt.get(['userPick'], (err1, resA) => {
         
         if (resA.userPick == 1) {
@@ -25,6 +25,8 @@ let managerMenu = () => {
             addInventory();
         } else if (resA.userPick == 4) {
             addNewProduct();
+        } else if (resA.userPick == 5) {
+            connection.end()
         } else {
             console.log('Please choose one of the listed numbers.');
             managerMenu(); 
@@ -42,33 +44,35 @@ let viewProducts = () => {
         });
         
     })
-    connection.end(); 
+    setTimeout(managerMenu, 200); 
 }
 
 let viewLowProducts = () => {
     console.log("View Low Inventory");
     connection.query("SELECT * FROM products", function(err, resC) {
         if (err) throw err;
-        var lowstock = true;
 
         resC.forEach(function(item, index){
+            let count = 0;
             if (item.stock_quantity < 5) {
                 console.log(`Item ID - ${item.item_id} : Product Name - ${item.product_name} : Department Name - ${item.department_name} : Price - $${item.price} : Stock Quantity - ${item.stock_quantity}`);  
             } else {
-                lowstock = false;
+                count++;
+                if (count === index.length) {
+                    console.log('You do not have any low inventory');
+                    
+                }
             }
                 
             
                 
             
         });
-        if (!lowstock) {
-            console.log('You do not have any low inventory');
             
-        }
+        
     })
-    connection.end();
-}
+    setTimeout(managerMenu, 200); 
+    }
 
 let addInventory = () => {
     displayInventory();
@@ -86,7 +90,6 @@ let displayInventory = () => {
 let addToInventory = () => {
     console.log("Please select the ID number and the Amount you would like to add to the inventory!\n");
     prompt.get(["itemID", "amount"], (err1, resE) => {
-        console.log(resE.amount, resE.itemID);
         
         connection.query(
             "UPDATE products SET stock_quantity = stock_quantity + ? WHERE item_id = ?",
@@ -94,15 +97,19 @@ let addToInventory = () => {
             resE.amount, resE.itemID
         ],
         function(err, resF) {
-            console.log("Would you like to add more inventory?");
-            prompt.get(["YesOrNo"], (err1, resG) => {
-                if (resG.YesOrNo == 'yes') {
-                    addInventory();
-                } else {
-                    connection.end();
-                }
-            });
+            displayInventory();
+            setTimeout(questionAddInventory, 200);
         })
+    });
+}
+let questionAddInventory = () => {
+    console.log("Would you like to add more inventory?");
+    prompt.get(["YesOrNo"], (err1, resG) => {
+        if (resG.YesOrNo == 'yes') {
+            addToInventory();
+        } else {
+            setTimeout(managerMenu, 200); 
+        }
     });
 }
 
@@ -120,7 +127,7 @@ let addNewProduct = () => {
                     if (resJ.YesOrNo == 'yes') {
                         addNewProduct();
                     } else {
-                        connection.end();
+                        setTimeout(managerMenu, 200); 
                     }
                 });
             }
